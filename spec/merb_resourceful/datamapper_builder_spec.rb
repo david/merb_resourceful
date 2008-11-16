@@ -46,11 +46,11 @@ describe "datamapper builder" do
   
   it_should_behave_like 'resourceful'
   
-  def find_resource(query)
+  def find_resource(query, parent = nil)
     Resource.first(query)
   end
   
-  def delete_resource(resource)
+  def delete_resource(resource, parent = nil)
     if Hash === resource
       (r = find_resource(resource)) && r.destroy
     else
@@ -58,7 +58,7 @@ describe "datamapper builder" do
     end
   end
   
-  def create_resource(attrs)
+  def create_resource(attrs, parent = nil)
     Resource.create(attrs)
   end
 end
@@ -124,19 +124,19 @@ describe "datamapper builder", "with parent (has many)" do
     @parent.destroy
   end
   
-  def find_resource(query)
-    @parent.child_resources.first(query)
+  def find_resource(query, parent)
+    parent.child_resources.first(query)
   end
   
-  def delete_resource(resource)
+  def delete_resource(resource, parent)
     if Hash === resource
-      (r = find_resource(resource)) && r.destroy
+      (r = find_resource(resource, parent)) && r.destroy
     else
       resource.destroy
     end
   end
   
-  def create_resource(attrs)
-    @parent.child_resources.create(attrs)
+  def create_resource(attrs, parent)
+    parent.child_resources.create(attrs)
   end
 end
