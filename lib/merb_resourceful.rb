@@ -1,6 +1,6 @@
 require 'english/style_orm'
-require 'merb_resourceful/controller_builder'
-require 'merb_resourceful/datamapper_builder'
+require File.join(File.dirname(__FILE__), 'merb_resourceful/controller_builder')
+require File.join(File.dirname(__FILE__), 'merb_resourceful/datamapper_builder')
 
 if defined?(Merb)
   module Merb

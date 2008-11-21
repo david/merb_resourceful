@@ -9,45 +9,25 @@ module Merb
 end
 
 describe "datamapper builder" do
+  it_should_behave_like 'resourceful'
+  
   before :all do
     DataMapper.setup(:default, "sqlite3://#{File.expand_path(File.dirname(__FILE__) + '/../../datamapper.db')}")
-    
-    class Resource
+
+    class TestResource
       include DataMapper::Resource
       
       property :id, Serial
       property :name, String
     end
-    
-    Resource.auto_migrate!
-    
-    class Resources < Merb::Controller
-      resourceful
 
-      def display(result)
-        result
-      end
-      
-      def resource_created(rsrc)
-        "resource created"
-      end
-      
-      def resource_updated(rsrc)
-        "resource updated"
-      end
-      
-      def message
-        {}
-      end
-    end
-    
-    @controller = Resources.allocate
+    TestResource.auto_migrate!
+
+    @controller = TestResources.new
   end
   
-  it_should_behave_like 'resourceful'
-  
   def find_resource(query, parent = nil)
-    Resource.first(query)
+    TestResource.first(query)
   end
   
   def delete_resource(resource, parent = nil)
@@ -59,84 +39,59 @@ describe "datamapper builder" do
   end
   
   def create_resource(attrs, parent = nil)
-    Resource.create(attrs)
+    TestResource.create(attrs)
   end
-end
 
-describe "datamapper builder", "with parent (has many)" do
-  before :all do
-    DataMapper.setup(:default, "sqlite3://#{File.expand_path(File.dirname(__FILE__) + '../../datamapper.db')}")
-    
-    class ParentResource
-      include DataMapper::Resource
+  describe "with parent (has many)" do
+    it_should_behave_like 'resourceful'
+  
+    before :all do
+      DataMapper.setup(:default, "sqlite3://#{File.expand_path(File.dirname(__FILE__) + '../../datamapper.db')}")
       
-      property :id, Serial
-      property :name, String
+      class ParentResource
+        include DataMapper::Resource
+        
+        property :id, Serial
+        property :name, String
+        
+        has n, :test_resources
+      end
       
-      has n, :child_resources
-    end
-    
-    class ChildResource
-      include DataMapper::Resource
+      ParentResource.auto_migrate!
+      TestResource.auto_migrate!
       
-      property :id, Serial
-      property :name, String
-    end
-    
-    ParentResource.auto_migrate!
-    ChildResource.auto_migrate!
-    
-    class ChildResources < Merb::Controller
-      resourceful :parent => lambda { p = ParentResource.get(params[:parent_resource_id]) }
+      @parent = test_parent = ParentResource.create(:name => 'parent')
+      @resourceful_opts = { :parent => lambda { ParentResource.get(params[:parent_resource_id]) } }
 
-      def display(result)
-        result
-      end
-      
-      def resource_created(rsrc)
-        "resource created"
-      end
-      
-      def resource_updated(rsrc)
-        "resource updated"
-      end
-      
-      def message
-        {}
+      TestResources.class_eval do
+        define_method :params do
+          {:parent_resource_id => test_parent.id}
+        end
       end
     end
-  end
-  
-  it_should_behave_like 'resourceful'
-  
-  before do
-    @parent = test_parent = ParentResource.create(:name => 'parent')
     
-    @controller = ChildResources.allocate
-    @controller.class.class_eval do
-      define_method :params do
-        {:parent_resource_id => test_parent.id}
+    after :all do
+      @parent.destroy
+    end
+    
+    before do
+      @controller = TestResources.new
+    end
+    
+    def find_resource(query, parent)
+      parent.test_resources.first(query)
+    end
+    
+    def delete_resource(resource, parent)
+      if Hash === resource
+        (r = find_resource(resource, parent)) && r.destroy
+      else
+        resource.destroy
       end
     end
-  end
-  
-  after do
-    @parent.destroy
-  end
-  
-  def find_resource(query, parent)
-    parent.child_resources.first(query)
-  end
-  
-  def delete_resource(resource, parent)
-    if Hash === resource
-      (r = find_resource(resource, parent)) && r.destroy
-    else
-      resource.destroy
+    
+    def create_resource(attrs, parent)
+      parent.test_resources.create(attrs)
     end
-  end
-  
-  def create_resource(attrs, parent)
-    parent.child_resources.create(attrs)
   end
 end
