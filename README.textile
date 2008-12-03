@@ -1,0 +1,45 @@
+h1. merb_resourceful
+
+merb_resourceful is a plugin similar to resource_controller or make_resourceful for rails.
+
+h2. Usage
+
+Generate a new resource (this will change in the future)
+
+  merb-gen resource my_resource
+
+Edit app/controllers/my_resources.rb and leave the class declaration only
+
+  class MyResources < Merb::Controller
+    resourceful
+  end
+
+This gives you a basic controller with a few defaults (destroy isn't implemented yet).
+
+h3. Nested resources
+
+  class MyResources < Merb::Controller
+    resourceful :belongs_to => lambda { ...  }, :as => :parent_instance_var_name # this will change soon, it's ugly
+  end
+
+h3. Not nested, but we use a different factory/getter
+
+  This allows you for things like scoping.
+
+  class MyResources < Merb::Controller
+    resourceful :parent => lambda { session.user }, :as => :parent_instance_var # same as above
+  end
+
+h3. Per-action settings
+
+  class MyResources < Merb::Controller
+    resourceful :parent => lambda { session.user }, :as => :parent_instance_var do
+      new :parent => lambda { session.parent }
+    end
+  end
+
+h2. Lots more to come
+
+* More docs
+* Simplified usage
+* Code cleanup
