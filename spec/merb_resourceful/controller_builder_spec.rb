@@ -4,7 +4,7 @@ describe "resourceful", :shared => true do
   before :all do
     @resourceful_opts = {}
 
-    class TestResources
+    class TestResources < Merb::AbstractController
       include Merb::Plugins::Resourceful
       extend Merb::Plugins::Resourceful::ClassMethods
       
