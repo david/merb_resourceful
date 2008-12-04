@@ -4,9 +4,11 @@ module Merb
       module Builders
         module Update
           def update(options = {})
+            builder = self
+            
             @controller_class.class_eval do
               def update
-                r = resource_get(params[:id]) or raise NotFound
+                r = resource_get(params[:id]) or raise ::Merb::Controller::NotFound
                 if r.update(params[self.class::RESOURCE_NAME])
                   resource_updated(r)
                 else
@@ -21,8 +23,14 @@ module Merb
                 redirect resource_updated_route(resrc), :message => {:notice => resource_updated_message(resrc)}
               end
               
-              def resource_updated_route(resrc)
-                resource(resrc)
+              if builder.has_parent?(options)
+                def resource_updated_route(resrc)
+                  resource(resource_parent_get, resrc)
+                end
+              else
+                def resource_updated_route(resrc)
+                  resource(resrc)
+                end
               end
               
               def resource_updated_message(resrc)

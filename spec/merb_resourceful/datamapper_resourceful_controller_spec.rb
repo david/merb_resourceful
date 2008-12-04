@@ -5,12 +5,18 @@ if Merb.orm == :datamapper
   given "a book exists" do
     Book.all.destroy!
     
-    @book = Book.create(:title => 'Code Complete')
+    @book = (@shelf ? @shelf.books : Book).create(:title => 'Code Complete')
+  end
+
+  given "a shelf exists" do
+    Shelf.all.destroy!
+    
+    @shelf = Shelf.create
   end
 
   describe "DataMapper resourceful controller" do
     before :all do
-      DataMapper.setup(:default, "sqlite3://#{File.expand_path(File.dirname(__FILE__) + '/../../datamapper.db')}")
+      DataMapper.setup(:default, "sqlite3::memory:")
       
       class Book
         include DataMapper::Resource
@@ -19,6 +25,13 @@ if Merb.orm == :datamapper
         property :title, String
       end
       
+      class Shelf
+        include DataMapper::Resource
+
+        property :id, Serial
+        
+        has n, :books
+      end
     end
     
     after :all do
@@ -26,30 +39,11 @@ if Merb.orm == :datamapper
     end
 
     before do
+      Shelf.auto_migrate!
       Book.auto_migrate!
     end
 
     it_should_behave_like "resourceful controller"
-  end
-  
-  def request_for_books
-    :books
-  end
-  
-  def request_for_book
-    @book || Book.first
-  end
-  
-  def request_for_new_book
-    [:books, :new]
-  end
-  
-  def request_for_edit_book
-    [@book, :edit]
-  end
-  
-  def find_book(id)
-    Book.get(id)
   end
 end
 

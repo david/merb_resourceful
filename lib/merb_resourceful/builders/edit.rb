@@ -7,7 +7,7 @@ module Merb
             @controller_class.class_eval do
               def edit
                 only_provides :html
-                r = resource_get(params[:id]) or raise NotFound
+                r = resource_get(params[:id]) or raise ::Merb::Controller::NotFound
                 display r, display_options_for_edit
               end
               

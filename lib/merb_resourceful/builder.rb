@@ -38,11 +38,9 @@ module Merb
           
           ALL_ACTIONS.each { |action| send(action) }
           
+          set_source
+
           @controller_class.class_eval <<-EOF
-            def resource_source
-              #{@resource_class}
-            end
-            
             def resources_set(r)
               @#{@resource_plural} = r
             end
@@ -54,14 +52,35 @@ module Merb
           if block_given? then instance_eval(&block) end
         end
         
-        protected
-        
-        def is_children?(options)
+        def has_parent?(options)
           !! (options[:belongs_to] || @options[:belongs_to])
         end
         
-        def parent(options)
-          options[:parent] || options[:belongs_to] || @options[:parent] || @options[:belongs_to]
+        protected
+        
+        def set_source
+          case @options[:belongs_to]
+          when Symbol
+            @controller_class.class_eval <<-EOF
+              def resource_source
+                #{@options[:belongs_to]}.#{@resource_plural}
+              end
+              
+              def resource_parent_get 
+                #{@options[:belongs_to]}
+              end
+            EOF
+          else
+            @controller_class.class_eval <<-EOF
+              def resource_source
+                #{@resource_class}
+              end
+            EOF
+          end
+        end              
+        
+        def is_children?(options)
+          !! (options[:belongs_to] || @options[:belongs_to])
         end
         
         def as(options)

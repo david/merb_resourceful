@@ -4,6 +4,8 @@ module Merb
       module Builders
         module Create
           def create(options = {})
+            builder = self
+
             @controller_class.class_eval do
               def create
                 r = resource_new(params[self.class::RESOURCE_NAME].merge!(create_resource_params))
@@ -21,8 +23,14 @@ module Merb
                 redirect resource_created_route(resrc), :message => { :notice => resource_created_message(resrc) }
               end
 
-              def resource_created_route(resrc)
-                resource(resrc)
+              if builder.has_parent?(options)
+                def resource_created_route(resrc)
+                  resource(resource_parent_get, resrc)
+                end
+              else
+                def resource_created_route(resrc)
+                  resource(resrc)
+                end
               end
               
               def resource_created_message(resrc)
