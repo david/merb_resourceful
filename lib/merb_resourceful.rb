@@ -1,5 +1,6 @@
 require 'english/style_orm'
 require File.join(File.dirname(__FILE__), 'merb_resourceful/builder')
+require File.join(File.dirname(__FILE__), 'merb_resourceful/orms/datamapper_resource')
 
 if defined?(Merb)
   module Merb
@@ -14,8 +15,7 @@ if defined?(Merb)
     end # Plugins
       
     class Controller
-      include ::Merb::Plugins::Resourceful
-      extend  ::Merb::Plugins::Resourceful::ClassMethods
+      extend ::Merb::Plugins::Resourceful::ClassMethods
     end
   end
 end

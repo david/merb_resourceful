@@ -4,13 +4,18 @@ module Merb
       module Builders
         module Show
           def show(options = {})
-            get_source_name = build_get_source_method(parent(options), :show, as(options))
-            @controller_class.class_eval <<-EOF
+            @controller_class.class_eval do
               def show
-                @#{@resource_name} = resource_get(#{get_source_name}, params[:id]) or raise NotFound
-                display @#{@resource_name}, #{display_options(options).inspect}
+                r = resource_get(params[:id]) or raise NotFound
+                display r, display_options_for_show
               end
-            EOF
+              
+              protected
+              
+              def display_options_for_show
+                {}
+              end
+            end
           end
         end
       end

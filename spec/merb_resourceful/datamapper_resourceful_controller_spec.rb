@@ -1,35 +1,56 @@
 require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 require File.join(File.dirname(__FILE__), 'resourceful_controller_spec')
-require 'dm-core'
 
-use_orm :datamapper
-
-given "a book exists" do
-  Book.all.destroy!
-  
-  Book.create(:title => 'Code Complete')
-end
-
-describe "DataMapper resourceful controller" do
-  before :all do
-    DataMapper.setup(:default, "sqlite3://#{File.expand_path(File.dirname(__FILE__) + '/../../datamapper.db')}")
+if Merb.orm == :datamapper
+  given "a book exists" do
+    Book.all.destroy!
     
-    class Book
-      include DataMapper::Resource
+    @book = Book.create(:title => 'Code Complete')
+  end
+
+  describe "DataMapper resourceful controller" do
+    before :all do
+      DataMapper.setup(:default, "sqlite3://#{File.expand_path(File.dirname(__FILE__) + '/../../datamapper.db')}")
       
-      property :id, Serial
-      property :title, String
+      class Book
+        include DataMapper::Resource
+        
+        property :id, Serial
+        property :title, String
+      end
+      
     end
     
+    after :all do
+      Object.send(:remove_const, :Book)
+    end
+
+    before do
+      Book.auto_migrate!
+    end
+
+    it_should_behave_like "resourceful controller"
   end
   
-  after :all do
-    #Object.send(:const_remove, :Book)
+  def request_for_books
+    :books
   end
-
-  before do
-    Book.auto_migrate!
+  
+  def request_for_book
+    @book || Book.first
   end
-
-  it_should_behave_like "resourceful controller"
+  
+  def request_for_new_book
+    [:books, :new]
+  end
+  
+  def request_for_edit_book
+    [@book, :edit]
+  end
+  
+  def find_book(id)
+    Book.get(id)
+  end
 end
+
+

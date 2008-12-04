@@ -4,8 +4,6 @@ require 'merb-core'
 
 $:.push File.join(File.dirname(__FILE__), '..', 'lib')
 
-require 'merb_resourceful'
-
 Spec::Runner.configure do |config|
   config.include(Merb::Test::ViewHelper)
   config.include(Merb::Test::RouteHelper)
@@ -13,3 +11,8 @@ Spec::Runner.configure do |config|
 end
 
 Merb.start :environment => 'test', :init_file => File.join(File.dirname(__FILE__), 'config', 'init.rb')
+
+use_orm (ENV['ORM'] || :datamapper).to_sym
+
+require 'merb_resourceful'
+

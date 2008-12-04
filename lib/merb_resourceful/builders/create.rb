@@ -4,72 +4,34 @@ module Merb
       module Builders
         module Create
           def create(options = {})
-            get_source_name = build_get_source_method(parent(options), :create, as(options))
-            
-            route = ""
-            if is_children?(options) then route << "@#{as(options)}," end
-            route << if options[:to] then options[:to].inspect else "resrc" end
-            
-            if options[:params]
-              @controller_class.send :define_method, :create_resource_params do 
-                instance_eval &options[:params]
-              end
-            else
-              @controller_class.class_eval do
-                def create_resource_params
-                  {}
-                end
-              end
-            end
-            
-            @controller_class.class_eval <<-EOF
+            @controller_class.class_eval do
               def create
-                @#{@resource_name} = resource_new(#{get_source_name}, 
-                                                  params[:#{@resource_name}].merge!(create_resource_params))
-                if resource_create(@#{@resource_name})
-                  resource_created(@#{@resource_name})
+                r = resource_new(params[self.class::RESOURCE_NAME].merge!(create_resource_params))
+                if r.save
+                  resource_created(r)
                 else
-                  message[:error] = "#{@resource_name.humanize} failed to be created"
-                  render :new, #{display_options(options[:error]).inspect}
+                  message[:error] = "#{self.class::RESOURCE_NAME.humanize} failed to be created"
+                  render :new, layout_options_for_new
                 end
               end
-
+              
               protected
-
+              
               def resource_created(resrc)
                 redirect resource_created_route(resrc), :message => { :notice => resource_created_message(resrc) }
               end
 
               def resource_created_route(resrc)
-                resource(#{route})
+                resource(resrc)
               end
-      
+              
               def resource_created_message(resrc)
-                "#{@resource_name.humanize} created successfully."
+                "#{self.class::RESOURCE_NAME.singularize} created successfully."
               end
-            EOF
-      
-            if options[:before]
-              @controller_class.class_eval do
-                private
-               
-                define_method :before_resource_create, &options[:before]
+              
+              def create_resource_params
+                {}
               end
-        
-              @controller_class.class_eval <<-EOF
-                private
-
-                def resource_create(resrc)
-                  before_resource_create(resrc)
-                  resrc.save
-                end
-              EOF
-            else
-              @controller_class.class_eval <<-EOF2
-                def resource_create(resrc)
-                  resrc.save
-                end
-              EOF2
             end
           end
         end

@@ -4,14 +4,19 @@ module Merb
       module Builders
         module Edit
           def edit(options = {})
-            get_source_name = build_get_source_method(parent(options), :edit, as(options))
-            @controller_class.class_eval <<-EOF
-            def edit
-              only_provides :html
-              @#{@resource_name} = resource_get(#{get_source_name}, params[:id]) or raise NotFound
-              display @#{@resource_name}, #{display_options(options[:success]).inspect}
+            @controller_class.class_eval do
+              def edit
+                only_provides :html
+                r = resource_get(params[:id]) or raise NotFound
+                display r, display_options_for_edit
+              end
+              
+              protected
+              
+              def display_options_for_edit
+                {}
+              end
             end
-            EOF
           end
         end
       end

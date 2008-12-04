@@ -4,16 +4,17 @@ module Merb
       module Builders
         module Index
           def index(options = {})
-            get_source_name = build_get_source_method(parent(options), :index, as(options))
-            
-            filter = if options[:filter] then ".#{options[:filter]}" else "" end
-            
-            @controller_class.class_eval <<-EOF
+            @controller_class.class_eval do
               def index
-                @#{@resource_plural} = resource_list(#{get_source_name})#{filter}
-                display @#{@resource_plural}, #{display_options(options).inspect}
+                display resource_list, display_options_for_index
               end
-            EOF
+              
+              protected
+
+              def display_options_for_index
+                {}
+              end
+            end
           end
         end
       end
