@@ -29,6 +29,7 @@ if Merb.orm == :datamapper
         
         property :id, Serial
         property :title, String
+        property :optional, String
         
         def self.zee_filter
           all(:title => 'filtered')

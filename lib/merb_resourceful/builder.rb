@@ -58,6 +58,13 @@ module Merb
         
         private
         
+        def inject_params(options, method_name)
+          case options[:params]
+          when Proc
+            @controller_class.send :define_method, "resource_params_for_#{method_name}", &options[:params]
+          end
+        end
+        
         def def_source(options = {}, method_name = nil)
           source = options[:belongs_to] || options[:scope] || @options[:belongs_to] || @options[:scope]
           

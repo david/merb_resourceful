@@ -7,11 +7,11 @@ module Merb
             def_source(options, :create)
             
             builder = self
-
+            
             @controller_class.class_eval do
               def create
                 r = resource_initialize(resource_source_for_create, 
-                                        params[self.class::RESOURCE_NAME].merge!(create_resource_params))
+                                        params[self.class::RESOURCE_NAME].merge!(resource_params_for_create))
                 if r.save
                   resource_created(r)
                 else
@@ -40,10 +40,12 @@ module Merb
                 "#{self.class::RESOURCE_NAME.singularize} created successfully."
               end
               
-              def create_resource_params
+              def resource_params_for_create
                 {}
               end
             end
+            
+            inject_params(options, :create)
           end
         end
       end

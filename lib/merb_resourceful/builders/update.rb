@@ -11,7 +11,7 @@ module Merb
             @controller_class.class_eval do
               def update
                 r = resource_get(resource_source_for_update, params[:id]) or raise ::Merb::Controller::NotFound
-                if r.update(params[self.class::RESOURCE_NAME])
+                if r.update(params[self.class::RESOURCE_NAME].merge!(resource_params_for_update))
                   resource_updated(r)
                 else
                   message[:error] = "#{RESOURCE_NAME.humanize} failed to be updated"
@@ -38,7 +38,13 @@ module Merb
               def resource_updated_message(resrc)
                 "#{self.class::RESOURCE_NAME.humanize} updated successfully."
               end
+              
+              def resource_params_for_update
+                {}
+              end
             end
+            
+            inject_params(options, :update)
           end
         end
       end

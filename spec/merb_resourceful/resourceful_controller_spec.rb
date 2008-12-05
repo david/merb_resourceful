@@ -55,6 +55,10 @@ describe "resourceful controller", :shared => true do
           @response.should redirect_to(resource(*request_for_book), 
                                        :message => {:notice => "book successfully created"})
         end
+        
+        it "creates the resource" do
+          find_book.should_not be_nil
+        end
       end
       
       describe "GET", "with filter", :given => "a book exists" do
@@ -165,7 +169,68 @@ describe "resourceful controller", :shared => true do
     end
   end
   
-  describe "action based scopes", :shared => true do
+  describe "action-specific params", :shared => true do
+    describe "resource(*, :books)" do
+      describe "a successful POST", "with extra params" do
+        before(:each) do
+          Object.send(:remove_const, :Books)
+          
+          class Books < Merb::Controller
+            def _template_location(action, type = nil, controller = controller_name)
+              controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
+            end
+            
+            resourceful do
+              create :params => lambda {{ :optional => "is not null!" }}
+            end
+          end
+          
+          @response = request(resource(*request_for_books), :method => "POST", 
+                              :params => { :book => { :title => "The C Programming Language" }})
+        end
+        
+        it "redirects to resource(*, @book)" do
+          @response.should redirect_to(resource(*request_for_book), 
+                                       :message => {:notice => "book successfully created"})
+        end
+        
+        it "adds the value of optional to the book" do
+          find_book.optional.should_not be_nil
+        end
+      end
+    end  
+    
+    describe "resource(*, @book)", :given => "a book exists" do
+      describe "PUT", "with extra params" do
+        before(:each) do
+          Object.send(:remove_const, :Books)
+          
+          class Books < Merb::Controller
+            def _template_location(action, type = nil, controller = controller_name)
+              controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
+            end
+            
+            resourceful do
+              update :params => lambda {{ :optional => "is not null!" }}
+            end
+          end
+          
+          @response = request(resource(*request_for_book), :method => "PUT", 
+                              :params => { :book => {:id => @book.id, :title => "Code Complete 2nd Edition."} })
+        end
+        
+        it "redirect to the book show action" do
+          @response.should redirect_to(resource(*request_for_book))
+        end
+        
+        it "updates the book with the extra param" do
+          Book.first.optional.should_not be_nil
+        end
+      end
+    end
+  end
+    
+  describe "action-specific scopes", :shared => true do
     describe "resource(*, @book)", :given => "a book exists" do
       describe "GET", "using :scope", :given => "2 books exist" do
         before(:each) do
@@ -269,7 +334,8 @@ describe "resourceful controller", :shared => true do
     end
     
     it_should_behave_like "common behavior"
-    it_should_behave_like "action based scopes"
+    it_should_behave_like "action-specific scopes"
+    it_should_behave_like "action-specific params"
     
     def find_book
       find_single_book
@@ -312,7 +378,7 @@ describe "resourceful controller", :shared => true do
     end
     
     it_should_behave_like "common behavior"
-    it_should_behave_like "action based scopes"
+    it_should_behave_like "action-specific scopes"
     
     def find_book
       find_book_in_shelf
@@ -345,7 +411,7 @@ describe "resourceful controller", :shared => true do
     end
     
     def request_for_book
-      [@shelf, @book || Book.first]
+      [@shelf, @book || find_book]
     end
     
     def request_for_new_book
