@@ -19,22 +19,37 @@ This gives you a basic controller with a few defaults (destroy isn't implemented
 h3. Nested resources
 
   class MyResources < Merb::Controller
-    resourceful :belongs_to => lambda { ...  }, :as => :parent_instance_var_name # this will change soon, it's ugly
+    resourceful :belongs_to => :my_parent
+
+    # The children will be accessed through parent.[children association]
+    # E.g. my_parent.my_resources
+    # this will be configurable in the future
+    def my_parent
+      @foo ||= session.user.parents.get(params[:foo_id])
+    end
   end
 
-h3. Not nested, but we use a different factory/getter
-
-  This allows you for things like scoping.
+h3. Scoped resources
 
   class MyResources < Merb::Controller
-    resourceful :parent => lambda { session.user }, :as => :parent_instance_var # same as above
+    resourceful :scope => :scope_method 
+
+    # works just like :parent, but doesn't use @bar for routing
+    def scope_method
+      @bar ||= session.user.parents.get(params[:bar_id])
+    end
   end
 
 h3. Per-action settings
 
   class MyResources < Merb::Controller
-    resourceful :parent => lambda { session.user }, :as => :parent_instance_var do
-      new :parent => lambda { session.parent }
+    resourceful do
+      index :layout => 'my_special_layout'
+      create :scope => :scope_for_create
+    end
+
+    def scope_for_create
+      @baz = get_me!
     end
   end
 
@@ -43,3 +58,4 @@ h2. Lots more to come
 * More docs
 * Simplified usage
 * Code cleanup
+* Implement destroy
