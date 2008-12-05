@@ -13,6 +13,12 @@ if Merb.orm == :datamapper
     
     @shelf = Shelf.create
   end
+  
+  given "2 books exist" do
+    @book = (@shelf ? @shelf.books : Book).create(:title => 'Code Complete')
+    @shelf2 = Shelf.create
+    @book2 = @shelf2.books.create(:title => 'The Practice of Programming')
+  end
 
   describe "DataMapper resourceful controller" do
     before :all do
@@ -23,6 +29,10 @@ if Merb.orm == :datamapper
         
         property :id, Serial
         property :title, String
+        
+        def self.zee_filter
+          all(:title => 'filtered')
+        end
       end
       
       class Shelf
@@ -54,5 +64,3 @@ if Merb.orm == :datamapper
     end
   end
 end
-
-

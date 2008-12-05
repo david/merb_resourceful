@@ -4,11 +4,14 @@ module Merb
       module Builders
         module Create
           def create(options = {})
+            def_source(options, :create)
+            
             builder = self
 
             @controller_class.class_eval do
               def create
-                r = resource_new(params[self.class::RESOURCE_NAME].merge!(create_resource_params))
+                r = resource_initialize(resource_source_for_create, 
+                                        params[self.class::RESOURCE_NAME].merge!(create_resource_params))
                 if r.save
                   resource_created(r)
                 else
@@ -25,7 +28,7 @@ module Merb
 
               if builder.has_parent?(options)
                 def resource_created_route(resrc)
-                  resource(resource_parent_get, resrc)
+                  resource(resource_parent_get_for_create, resrc)
                 end
               else
                 def resource_created_route(resrc)

@@ -4,10 +4,12 @@ module Merb
       module Builders
         module Edit
           def edit(options = {})
+            def_source(options, :edit)
+
             @controller_class.class_eval do
               def edit
                 only_provides :html
-                r = resource_get(params[:id]) or raise ::Merb::Controller::NotFound
+                r = resource_get(resource_source_for_edit, params[:id]) or raise ::Merb::Controller::NotFound
                 display r, display_options_for_edit
               end
               

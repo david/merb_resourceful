@@ -4,16 +4,16 @@ if Merb.orm == :datamapper
       module Resourceful
         module ORMS
           module DataMapperResource
-            def resource_list
-              resources_set(resource_source.all)
+            def resource_list(source)
+              resources_set(source.all)
             end
 
-            def resource_new(attrs = {})
-              resource_set(resource_source.new(attrs))
+            def resource_initialize(source, attrs = {})
+              resource_set(source.new(attrs))
             end
             
-            def resource_get(id)
-              resource_set(resource_source.get(id))
+            def resource_get(source, id)
+              resource_set(source.get(id))
             end
           end
         end

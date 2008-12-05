@@ -36,10 +36,10 @@ module Merb
           @controller_class.const_set('RESOURCE_NAME', @resource_name)
           @controller_class.const_set('RESOURCES_NAME', @resource_plural)
           
+          def_source
+
           ALL_ACTIONS.each { |action| send(action) }
           
-          set_source
-
           @controller_class.class_eval <<-EOF
             def resources_set(r)
               @#{@resource_plural} = r
@@ -56,30 +56,43 @@ module Merb
           !! (options[:belongs_to] || @options[:belongs_to])
         end
         
-        protected
+        private
         
-        def set_source
-          source = @options[:belongs_to] || @options[:scope]
+        def def_source(options = {}, method_name = nil)
+          source = options[:belongs_to] || options[:scope] || @options[:belongs_to] || @options[:scope]
+          
           case source
           when Symbol
-            @controller_class.class_eval <<-EOF
-              def resource_source
-                #{source}.#{@resource_plural}
-              end
-              
-              def resource_parent_get 
-                #{source}
-              end
-            EOF
+            def_source_with_scope(source, method_name)
           else
-            @controller_class.class_eval <<-EOF
-              def resource_source
-                #{@resource_class}
+            if method_name.nil?
+              @controller_class.class_eval <<-EOF
+                def resource_source
+                  #{@resource_class}
+                end
+              EOF
+            else
+              @controller_class.class_eval do
+                alias_method "resource_source_for_#{method_name}", :resource_source
               end
-            EOF
+            end
           end
-        end              
+        end
         
+        def def_source_with_scope(source, method_name = nil)
+          suffix = method_name && "_for_#{method_name}"
+          
+          @controller_class.class_eval <<-EOF
+            def resource_source#{suffix}
+              #{source}.#{@resource_plural}
+            end
+
+            def resource_parent_get#{suffix}
+              #{source}
+            end
+          EOF
+        end
+          
         def is_children?(options)
           !! (options[:belongs_to] || @options[:belongs_to])
         end

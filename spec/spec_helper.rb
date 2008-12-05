@@ -15,4 +15,5 @@ Merb.start :environment => 'test', :init_file => File.join(File.dirname(__FILE__
 use_orm (ENV['ORM'] || :datamapper).to_sym
 
 require 'merb_resourceful'
+require 'ruby-debug'
 
