@@ -9,7 +9,7 @@ module Merb
             @controller_class.class_eval do
               def show
                 r = resource_get_for_show(params[:id]) or raise Merb::Controller::NotFound
-                display r, display_options_for_show
+                display r, render_options_for_show
               end
               
               protected
@@ -18,10 +18,12 @@ module Merb
                 resource_get(resource_source_for_show, id)
               end
               
-              def display_options_for_show
+              def render_options_for_show
                 {}
               end
             end
+          
+            inject_render_options(options, :show)
           end
         end
       end

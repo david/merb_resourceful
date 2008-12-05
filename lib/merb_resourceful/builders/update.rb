@@ -15,7 +15,7 @@ module Merb
                   resource_updated(r)
                 else
                   message[:error] = "#{RESOURCE_NAME.humanize} failed to be updated"
-                  render :edit
+                  render :edit, render_options_for_update
                 end
               end
               
@@ -42,9 +42,14 @@ module Merb
               def resource_params_for_update
                 {}
               end
+              
+              def render_options_for_update
+                {}
+              end
             end
             
             inject_params(options, :update)
+            inject_render_options(options, :update)
           end
         end
       end

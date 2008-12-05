@@ -8,11 +8,18 @@ describe "resourceful controller", :shared => true do
   end
   
   before do
-    class Books < Merb::Controller
+    class AbstractBooks < Merb::Controller
       def _template_location(action, type = nil, controller = controller_name)
         controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
       end
     end
+    
+    class ShelvedBooks < AbstractBooks
+      def shelf
+        @shelf ||= Shelf.all.last
+      end
+    end
+
   end
   
   after do
@@ -65,11 +72,7 @@ describe "resourceful controller", :shared => true do
         before(:each) do
           Object.send(:remove_const, :Books)
           
-          class Books < Merb::Controller
-            def _template_location(action, type = nil, controller = controller_name)
-              controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
-            end
-            
+          class Books < AbstractBooks
             resourceful do
               index :filter => :zee_filter
             end
@@ -163,8 +166,29 @@ describe "resourceful controller", :shared => true do
         end
         
         it "updates the book" do
+
           Book.first.title.should == "Code Complete 2nd Edition."
         end
+      end
+    end
+  end
+  
+  describe "action-specific layouts", :shared => true do
+    describe "GET", :given => "a book exists" do
+      before(:each) do
+        Object.send(:remove_const, :Books)
+        
+        class Books < AbstractBooks
+          resourceful do
+            show :layout => :another
+          end
+        end
+        
+        @response = request(resource(*request_for_book))
+      end
+      
+      it "has a different layout" do
+        @response.should have_xpath("//*[contains(., 'Another Layout')]")
       end
     end
   end
@@ -175,11 +199,7 @@ describe "resourceful controller", :shared => true do
         before(:each) do
           Object.send(:remove_const, :Books)
           
-          class Books < Merb::Controller
-            def _template_location(action, type = nil, controller = controller_name)
-              controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
-            end
-            
+          class Books < AbstractBooks
             resourceful do
               create :params => lambda {{ :optional => "is not null!" }}
             end
@@ -205,11 +225,7 @@ describe "resourceful controller", :shared => true do
         before(:each) do
           Object.send(:remove_const, :Books)
           
-          class Books < Merb::Controller
-            def _template_location(action, type = nil, controller = controller_name)
-              controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
-            end
-            
+          class Books < AbstractBooks
             resourceful do
               update :params => lambda {{ :optional => "is not null!" }}
             end
@@ -236,17 +252,9 @@ describe "resourceful controller", :shared => true do
         before(:each) do
           Object.send(:remove_const, :Books)
           
-          class Books < Merb::Controller
-            def _template_location(action, type = nil, controller = controller_name)
-              controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
-            end
-            
+          class Books < ShelvedBooks
             resourceful do
               show :scope => :shelf
-            end
-
-            def shelf
-              @shelf ||= Shelf.all.last
             end
           end
           
@@ -270,17 +278,9 @@ describe "resourceful controller", :shared => true do
         before(:each) do
           Object.send(:remove_const, :Books)
           
-          class Books < Merb::Controller
-            def _template_location(action, type = nil, controller = controller_name)
-              controller == "layout" ? "layout.#{action}.#{type}" : "#{action}.#{type}"
-            end
-            
+          class Books < ShelvedBooks
             resourceful do
               create :scope => :shelf
-            end
-
-            def shelf
-              @shelf ||= Shelf.first
             end
           end
           
@@ -314,7 +314,9 @@ describe "resourceful controller", :shared => true do
     end
     
     before do
-      Books.resourceful
+      class Books < AbstractBooks
+        resourceful
+      end
     end
     
     def request_for_books
@@ -336,6 +338,7 @@ describe "resourceful controller", :shared => true do
     it_should_behave_like "common behavior"
     it_should_behave_like "action-specific scopes"
     it_should_behave_like "action-specific params"
+    it_should_behave_like "action-specific layouts"
     
     def find_book
       find_single_book
@@ -352,12 +355,8 @@ describe "resourceful controller", :shared => true do
     end
     
     before do
-      Books.class_eval do
+      class Books < ShelvedBooks
         resourceful :scope => :shelf
-      
-        def shelf
-          @shelf ||= Shelf.first
-        end
       end
     end
     
@@ -397,12 +396,8 @@ describe "resourceful controller", :shared => true do
     end
     
     before do
-      Books.class_eval do
+      class Books < ShelvedBooks
         resourceful :belongs_to => :shelf
-      
-        def shelf
-          @shelf ||= Shelf.first
-        end
       end
     end
     

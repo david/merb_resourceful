@@ -16,7 +16,7 @@ module Merb
                   resource_created(r)
                 else
                   message[:error] = "#{self.class::RESOURCE_NAME.humanize} failed to be created"
-                  render :new, layout_options_for_new
+                  render :new, render_options_for_create
                 end
               end
               
@@ -43,9 +43,14 @@ module Merb
               def resource_params_for_create
                 {}
               end
+              
+              def render_options_for_create
+                {}
+              end
             end
             
             inject_params(options, :create)
+            inject_render_options(options, :create)
           end
         end
       end

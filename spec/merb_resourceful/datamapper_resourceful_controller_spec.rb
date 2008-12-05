@@ -28,7 +28,7 @@ if Merb.orm == :datamapper
         include DataMapper::Resource
         
         property :id, Serial
-        property :title, String
+        property :title, String, :length => 1..255
         property :optional, String
         
         def self.zee_filter

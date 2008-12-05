@@ -58,6 +58,14 @@ module Merb
         
         private
         
+        def inject_render_options(options, method_name)
+          if options[:layout]
+            @controller_class.send :define_method, "render_options_for_#{method_name}" do
+              { :layout => options[:layout] }
+            end
+          end
+        end
+        
         def inject_params(options, method_name)
           case options[:params]
           when Proc
