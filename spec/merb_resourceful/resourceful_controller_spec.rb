@@ -142,7 +142,7 @@ describe "resourceful controller", :shared => true do
     end
     
     def request_for_book
-      @book || Book.first
+      @book || find_book
     end
     
     def request_for_new_book
@@ -154,6 +154,52 @@ describe "resourceful controller", :shared => true do
     end
     
     it_should_behave_like "common behavior"
+    
+    def find_book
+      find_single_book
+    end
+  end
+  
+  describe "single resource", "using :scope", :given => "a shelf exists" do
+    before :all do
+      Merb::Router.prepare do |r|
+        identify :id do
+          r.resources :books
+        end
+      end
+    end
+    
+    before do
+      Books.class_eval do
+        resourceful :scope => :shelf
+      
+        def shelf
+          @shelf ||= Shelf.first
+        end
+      end
+    end
+    
+    def request_for_books
+      :books
+    end
+    
+    def request_for_book
+      @book || find_book
+    end
+    
+    def request_for_new_book
+      [:books, :new]
+    end
+    
+    def request_for_edit_book
+      [@book, :edit]
+    end
+    
+    it_should_behave_like "common behavior"
+    
+    def find_book
+      find_book_in_shelf
+    end
   end
   
   describe "nested resource", "through method", :given => "a shelf exists" do
@@ -194,5 +240,9 @@ describe "resourceful controller", :shared => true do
     end
     
     it_should_behave_like "common behavior"
+    
+    def find_book
+      find_book_in_shelf
+    end
   end
 end

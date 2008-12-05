@@ -59,15 +59,16 @@ module Merb
         protected
         
         def set_source
-          case @options[:belongs_to]
+          source = @options[:belongs_to] || @options[:scope]
+          case source
           when Symbol
             @controller_class.class_eval <<-EOF
               def resource_source
-                #{@options[:belongs_to]}.#{@resource_plural}
+                #{source}.#{@resource_plural}
               end
               
               def resource_parent_get 
-                #{@options[:belongs_to]}
+                #{source}
               end
             EOF
           else

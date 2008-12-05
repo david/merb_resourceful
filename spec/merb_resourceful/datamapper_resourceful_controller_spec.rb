@@ -44,6 +44,14 @@ if Merb.orm == :datamapper
     end
 
     it_should_behave_like "resourceful controller"
+    
+    def find_single_book
+      Book.first
+    end
+    
+    def find_book_in_shelf
+      @shelf.books.first
+    end
   end
 end
 
