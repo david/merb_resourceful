@@ -53,9 +53,18 @@ h3. Per-action settings
     end
   end
 
+h3. Param injection
+
+Merb already supports this with the defer_to method in the router, but I think this is way more explicit.
+
+  class MyResources < Merb::Controller
+    resourceful do
+      index :params => lambda {{ :creator => session.user }} # passes :creator as a param to MyResource.new
+      create :params => lambda {{ :creator => session.user }} # passes :creator as a param to the resource's update method
+    end
+  end
+
 h2. Lots more to come
 
 * More docs
-* Simplified usage
-* Code cleanup
 * Implement destroy
