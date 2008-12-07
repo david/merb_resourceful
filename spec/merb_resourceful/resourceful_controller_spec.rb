@@ -30,6 +30,8 @@ describe "resourceful controller", :shared => true do
     describe "resource(*, :books)" do
       describe "GET" do
         before(:each) do
+          with_resourceful
+          
           @response = request(resource(*request_for_books))
         end
         
@@ -44,6 +46,8 @@ describe "resourceful controller", :shared => true do
       
       describe "GET", :given => "a book exists" do
         before(:each) do
+          with_resourceful
+          
           @response = request(resource(*request_for_books))
         end
         
@@ -54,6 +58,8 @@ describe "resourceful controller", :shared => true do
       
       describe "a successful POST" do
         before(:each) do
+          with_resourceful
+          
           @response = request(resource(*request_for_books), :method => "POST", 
                               :params => { :book => { :title => "The C Programming Language" }})
         end
@@ -68,14 +74,10 @@ describe "resourceful controller", :shared => true do
         end
       end
       
-      describe "GET", "with filter", :given => "a book exists" do
+      describe "GET", "with :filter", :given => "a book exists" do
         before(:each) do
-          Object.send(:remove_const, :Books)
-          
-          class Books < AbstractBooks
-            resourceful do
-              index :filter => :zee_filter
-            end
+          with_resourceful do
+            index :filter => :zee_filter
           end
           
           @response = request(resource(*request_for_books))
@@ -87,122 +89,10 @@ describe "resourceful controller", :shared => true do
         end
       end
       
-      describe "a successful POST" do
+      describe "a successful POST", "with :params" do
         before(:each) do
-          @response = request(resource(*request_for_books), :method => "POST", 
-                              :params => { :book => { :title => "The C Programming Language" }})
-        end
-        
-        it "redirects to resource(*, @book)" do
-          @response.should redirect_to(resource(*request_for_book), 
-                                       :message => {:notice => "book successfully created"})
-        end
-      end
-    end
-
-    describe "resource(*, @book)" do 
-      describe "a successful DELETE", :given => "a book exists" do
-        before(:each) do
-          pending do 
-            @response = request(resource(*request_delete), :method => "DELETE")
-          end
-        end
-
-        it "should redirect to the index action" do
-          pending do
-            @response.should redirect_to(resource(*request_for_books))
-          end
-        end
-      end
-    end
-
-    describe "resource(*, :books, :new)" do
-      before(:each) do
-        @response = request(resource(*request_for_new_book))
-      end
-      
-      it "responds successfully" do
-        @response.should be_successful
-      end
-    end
-
-    describe "resource(*, @book, :edit)", :given => "a book exists" do
-      before(:each) do
-        @response = request(resource(*request_for_edit_book))
-      end
-      
-      it "responds successfully" do
-        @response.should be_successful
-      end
-      
-      it "presents the resource being edited" do
-        @response.should have_xpath("//*[contains(., 'Edit Code Complete')]")
-      end
-    end
-
-    describe "resource(*, @book)", :given => "a book exists" do
-      describe "GET" do
-        before(:each) do
-          @response = request(resource(*request_for_book))
-        end
-        
-        it "responds successfully" do
-          @response.should be_successful
-        end
-        
-        it "shows the right book" do
-          @response.should have_xpath("//*[contains(., 'Code Complete')]")
-        end
-      end
-      
-      describe "PUT" do
-        before(:each) do
-          @response = request(resource(*request_for_book), :method => "PUT", 
-                              :params => { :book => {:id => @book.id, :title => "Code Complete 2nd Edition."} })
-        end
-        
-        it "redirect to the book show action" do
-          @response.should redirect_to(resource(*request_for_book))
-        end
-        
-        it "updates the book" do
-
-          Book.first.title.should == "Code Complete 2nd Edition."
-        end
-      end
-    end
-  end
-  
-  describe "action-specific layouts", :shared => true do
-    describe "GET", :given => "a book exists" do
-      before(:each) do
-        Object.send(:remove_const, :Books)
-        
-        class Books < AbstractBooks
-          resourceful do
-            show :layout => :another
-          end
-        end
-        
-        @response = request(resource(*request_for_book))
-      end
-      
-      it "has a different layout" do
-        @response.should have_xpath("//*[contains(., 'Another Layout')]")
-      end
-    end
-  end
-  
-  describe "action-specific params", :shared => true do
-    describe "resource(*, :books)" do
-      describe "a successful POST", "with extra params" do
-        before(:each) do
-          Object.send(:remove_const, :Books)
-          
-          class Books < AbstractBooks
-            resourceful do
-              create :params => lambda {{ :optional => "is not null!" }}
-            end
+          with_resourceful do
+            create :params => lambda {{ :optional => "is not null!" }}
           end
           
           @response = request(resource(*request_for_books), :method => "POST", 
@@ -218,17 +108,90 @@ describe "resourceful controller", :shared => true do
           find_book.optional.should_not be_nil
         end
       end
-    end  
-    
-    describe "resource(*, @book)", :given => "a book exists" do
-      describe "PUT", "with extra params" do
+      
+      describe "a successful POST", "with :to" do
         before(:each) do
-          Object.send(:remove_const, :Books)
+          with_resourceful do
+            create :to => :books
+          end
           
-          class Books < AbstractBooks
-            resourceful do
-              update :params => lambda {{ :optional => "is not null!" }}
-            end
+          @response = request(resource(*request_for_books), :method => "POST", 
+                              :params => { :book => { :title => "The C Programming Language" }})
+        end
+        
+        it "redirects to resource(*, :books)" do
+          @response.should redirect_to(resource(*request_for_books), 
+                                       :message => {:notice => "book successfully created"})
+        end
+      end
+    end
+
+    describe "resource(*, :books, :new)" do
+      before(:each) do
+        with_resourceful
+          
+        @response = request(resource(*request_for_new_book))
+      end
+      
+      it "responds successfully" do
+        @response.should be_successful
+      end
+    end
+
+    describe "resource(*, @book, :edit)", :given => "a book exists" do
+      before(:each) do
+        with_resourceful
+          
+        @response = request(resource(*request_for_edit_book))
+      end
+      
+      it "responds successfully" do
+        @response.should be_successful
+      end
+      
+      it "presents the resource being edited" do
+        @response.should have_xpath("//*[contains(., 'Edit Code Complete')]")
+      end
+    end
+
+    describe "resource(*, @book)", :given => "a book exists" do
+      describe "GET" do
+        before(:each) do
+          with_resourceful
+          
+          @response = request(resource(*request_for_book))
+        end
+        
+        it "responds successfully" do
+          @response.should be_successful
+        end
+        
+        it "shows the right book" do
+          @response.should have_xpath("//*[contains(., 'Code Complete')]")
+        end
+      end
+      
+      describe "PUT" do
+        before(:each) do
+          with_resourceful
+          
+          @response = request(resource(*request_for_book), :method => "PUT", 
+                              :params => { :book => {:id => @book.id, :title => "Code Complete 2nd Edition."} })
+        end
+        
+        it "redirect to the book show action" do
+          @response.should redirect_to(resource(*request_for_book))
+        end
+        
+        it "updates the book" do
+          Book.first.title.should == "Code Complete 2nd Edition."
+        end
+      end
+      
+      describe "PUT", "with :params" do
+        before(:each) do
+          with_resourceful do
+            update :params => lambda {{ :optional => "is not null!" }}
           end
           
           @response = request(resource(*request_for_book), :method => "PUT", 
@@ -243,19 +206,51 @@ describe "resourceful controller", :shared => true do
           Book.first.optional.should_not be_nil
         end
       end
+      
+      describe "a successful DELETE" do
+        before(:each) do
+          pending do 
+            @response = request(resource(*request_delete), :method => "DELETE")
+          end
+        end
+
+        it "should redirect to the index action" do
+          pending do
+            @response.should redirect_to(resource(*request_for_books))
+          end
+        end
+      end
+      
+      describe "GET" do
+        before(:each) do
+          with_resourceful do
+            show :layout => :another
+          end
+          
+          @response = request(resource(*request_for_book))
+        end
+        
+        it "has a different layout" do
+          @response.should have_xpath("//*[contains(., 'Another Layout')]")
+        end
+      end
     end
   end
-    
+  
   describe "action-specific scopes", :shared => true do
+    before do
+      Books.class_eval do
+        def shelf
+          @shelf ||= Shelf.all.last
+        end
+      end
+    end
+    
     describe "resource(*, @book)", :given => "a book exists" do
       describe "GET", "using :scope", :given => "2 books exist" do
         before(:each) do
-          Object.send(:remove_const, :Books)
-          
-          class Books < ShelvedBooks
-            resourceful do
-              show :scope => :shelf
-            end
+          with_resourceful do
+            show :scope => :shelf
           end
           
           @response = request(resource(*request_for_book))
@@ -276,12 +271,8 @@ describe "resourceful controller", :shared => true do
     
       describe "a successful POST", "using :scope", :given => "a shelf exists" do
         before(:each) do
-          Object.send(:remove_const, :Books)
-          
-          class Books < ShelvedBooks
-            resourceful do
-              create :scope => :shelf
-            end
+          with_resourceful do
+            create :scope => :shelf
           end
           
           @response = request(resource(*request_for_books), :method => "POST", 
@@ -315,7 +306,6 @@ describe "resourceful controller", :shared => true do
     
     before do
       class Books < AbstractBooks
-        resourceful
       end
     end
     
@@ -337,11 +327,15 @@ describe "resourceful controller", :shared => true do
     
     it_should_behave_like "common behavior"
     it_should_behave_like "action-specific scopes"
-    it_should_behave_like "action-specific params"
-    it_should_behave_like "action-specific layouts"
     
     def find_book
       find_single_book
+    end
+    
+    def with_resourceful(&block)
+      Books.class_eval do
+        resourceful &block
+      end
     end
   end
   
@@ -355,9 +349,7 @@ describe "resourceful controller", :shared => true do
     end
     
     before do
-      class Books < ShelvedBooks
-        resourceful :scope => :shelf
-      end
+      class Books < ShelvedBooks; end
     end
     
     def request_for_books
@@ -382,6 +374,12 @@ describe "resourceful controller", :shared => true do
     def find_book
       find_book_in_shelf
     end
+    
+    def with_resourceful(&block)
+      Books.class_eval do
+        resourceful :scope => :shelf, &block
+      end
+    end
   end
   
   describe "nested resource", "through method", :given => "a shelf exists" do
@@ -396,9 +394,7 @@ describe "resourceful controller", :shared => true do
     end
     
     before do
-      class Books < ShelvedBooks
-        resourceful :belongs_to => :shelf
-      end
+      class Books < ShelvedBooks; end
     end
     
     def request_for_books
@@ -421,6 +417,12 @@ describe "resourceful controller", :shared => true do
     
     def find_book
       find_book_in_shelf
+    end
+    
+    def with_resourceful(&block)
+      Books.class_eval do
+        resourceful :belongs_to => :shelf, &block
+      end
     end
   end
 end
