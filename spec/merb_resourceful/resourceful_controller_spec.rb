@@ -84,8 +84,21 @@ describe "resourceful controller", :shared => true do
         end
         
         it "has a list of filtered books" do
-          @response.should have_xpath("//ul")
-          @response.should_not have_xpath("//ul/li")
+          @response.should have_xpath("//ul/li['no params']")
+        end
+      end
+      
+      describe "GET", "with :filter and :params", :given => "a book exists" do
+        before(:each) do
+          with_resourceful do
+            index :filter => :zee_filter, :params => lambda { "whoa" }
+          end
+          
+          @response = request(resource(*request_for_books))
+        end
+        
+        it "has a list of filtered books" do
+          @response.should have_xpath("//ul/li['whoa']")
         end
       end
       

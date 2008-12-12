@@ -31,8 +31,12 @@ if Merb.orm == :datamapper
         property :title, String, :length => 1..255
         property :optional, String
         
-        def self.zee_filter
-          all(:title => 'filtered')
+        def self.zee_filter(*args)
+          if param = args.pop
+            [Book.new(:title => param)]
+          else
+            [Book.new(:title => "no params")]
+          end
         end
       end
       
@@ -61,7 +65,7 @@ if Merb.orm == :datamapper
     end
     
     def find_book_in_shelf
-      @shelf.books.first
+      @shelf.books.last
     end
   end
 end

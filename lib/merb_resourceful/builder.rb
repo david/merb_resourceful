@@ -46,6 +46,7 @@ module Merb
           def_source(options, :index)
 
           filter = options[:filter] && ".#{options[:filter]}"
+          params = options[:params] && "(resource_params_for_index)"
           @controller_class.class_eval <<-EOF
             def resource_index
               resources_set(resource_list(resource_source_for_index)#{filter})
@@ -59,6 +60,7 @@ module Merb
           end
           
           inject_render_options(options, :index)
+          inject_params(options, :index)
         end
         
         def show(options = {})
@@ -259,7 +261,7 @@ module Merb
         def def_source_with_scope(source, method_name = nil)
           suffix = method_name && "_for_#{method_name}"
           
-          @controller_class.class_eval <<-EOF
+          s = <<-EOF
             protected
             def resource_source#{suffix}
               #{source}.#{@resource_plural}
@@ -269,6 +271,8 @@ module Merb
               #{source}
             end
           EOF
+
+          @controller_class.class_eval s
         end
       end
     end
