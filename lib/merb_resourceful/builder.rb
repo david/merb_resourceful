@@ -49,7 +49,7 @@ module Merb
           params = options[:params] && "(resource_params_for_index)"
           @controller_class.class_eval <<-EOF
             def resource_index
-              resources_set(resource_list(resource_source_for_index)#{filter})
+              resources_set(resource_list(resource_source_for_index)#{filter}#{params})
             end
           EOF
 

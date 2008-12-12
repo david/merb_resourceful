@@ -84,7 +84,7 @@ describe "resourceful controller", :shared => true do
         end
         
         it "has a list of filtered books" do
-          @response.should have_xpath("//ul/li['no params']")
+          @response.should have_xpath("//ul/li[. = 'no params']")
         end
       end
       
@@ -98,7 +98,7 @@ describe "resourceful controller", :shared => true do
         end
         
         it "has a list of filtered books" do
-          @response.should have_xpath("//ul/li['whoa']")
+          @response.should have_xpath("//ul/li[. = 'whoa']")
         end
       end
       
