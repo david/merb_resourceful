@@ -1,4 +1,7 @@
-require 'english/style_orm'
+require 'rubygems'
+gem 'merb-core'
+gem 'extlib'
+
 require File.join(File.dirname(__FILE__), 'merb_resourceful/builder')
 require File.join(File.dirname(__FILE__), 'merb_resourceful/orms/datamapper_resource')
 

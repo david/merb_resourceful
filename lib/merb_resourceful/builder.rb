@@ -1,5 +1,5 @@
+require 'extlib/inflection'
 require File.expand_path(File.join(File.dirname(__FILE__), 'controller'))
-
 
 module Merb
   module Plugins
@@ -10,10 +10,9 @@ module Merb
         def initialize(controller_class, options) 
           @controller_class = controller_class
           @options          = options
-          @resource_class   = @controller_class.name.demodulize.singularize
-          @resource_plural  = @controller_class.name.demodulize.underscore
+          @resource_class   = Extlib::Inflection.singularize(Extlib::Inflection.demodulize(@controller_class.name))
+          @resource_plural  = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(@controller_class.name))
           @resource_name    = @resource_plural.singularize
-          
         end
         
         def build(&block)
@@ -111,7 +110,7 @@ module Merb
               if r.save
                 resource_created(r)
               else
-                message[:error] = "#{self.class::RESOURCE_NAME.humanize} failed to be created"
+                message[:error] = "#{Extlib::Inflection.humanize(self.class::RESOURCE_NAME)} failed to be created"
                 render :new, render_options_for_create
               end
             end
@@ -155,7 +154,7 @@ module Merb
               if r.update(params[self.class::RESOURCE_NAME].merge!(resource_params_for_update))
                 resource_updated(r)
               else
-                message[:error] = "#{RESOURCE_NAME.humanize} failed to be updated"
+                message[:error] = "#{Extlib::Inflection.humanize(RESOURCE_NAME)} failed to be updated"
                 render :edit, render_options_for_update
               end
             end
@@ -167,7 +166,7 @@ module Merb
             end
 
             def resource_updated_message(resrc)
-              "#{self.class::RESOURCE_NAME.humanize} updated successfully."
+              "#{Extlib::Inflection.humanize(self.class::RESOURCE_NAME)} updated successfully."
             end
           end
 
